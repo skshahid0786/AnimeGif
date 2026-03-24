@@ -1,0 +1,12 @@
+{
+  "name": "animegif-api",
+  "version": "1.0.0",
+  "description": "Premium Image API Wrapper",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0"
+  }
+}
+
+
