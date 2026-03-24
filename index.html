@@ -18,7 +18,7 @@
 
         <div class="controls">
             <button onclick="fetchImage()" id="gen-btn">Generate Asset</button>
-            <p class="api-hint">Endpoint: <code>/api/generate</code></p>
+            <p class="api-hint">Source: <code>waifu.pics/api</code></p>
         </div>
     </div>
 
@@ -34,9 +34,11 @@
             skeleton.style.display = "block";
 
             try {
-                const res = await fetch('/api/generate');
+                // Direct call to the source since GitHub Pages has no backend
+                const res = await fetch('https://api.waifu.pics/sfw/waifu');
                 const data = await res.json();
-                img.src = data.image_url;
+                
+                img.src = data.url;
                 img.onload = () => {
                     skeleton.style.display = "none";
                     img.style.display = "block";
@@ -44,8 +46,10 @@
                     btn.innerText = "Generate Asset";
                 };
             } catch (e) {
-                alert("API Error");
+                console.error(e);
+                alert("Connection Error. Try again.");
                 btn.disabled = false;
+                btn.innerText = "Generate Asset";
             }
         }
         window.onload = fetchImage;
