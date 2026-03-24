@@ -3,56 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlissCraft | Premium API</title>
+    <title>BlissCraft | Ultimate API Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="glass-card">
-        <h1>BlissCraft <span class="highlight">API</span></h1>
-        <p>High-quality anime assets for developers.</p>
+        <header>
+            <h1>BlissCraft <span class="highlight">OS</span></h1>
+            <div class="status-dot"></div>
+        </header>
         
-        <div class="image-container">
-            <div id="skeleton" class="skeleton"></div>
-            <img id="waifu-img" src="" alt="Result" style="display:none;">
+        <div class="selection-grid">
+            <select id="type-select" onchange="updateEndpoint()">
+                <option value="sfw">SFW</option>
+                <option value="nsfw">NSFW</option>
+            </select>
+            
+            <select id="category-select" onchange="updateEndpoint()">
+                <option value="waifu">Waifu</option>
+                <option value="neko">Neko</option>
+                <option value="megumin">Megumin</option>
+                <option value="shinobu">Shinobu</option>
+                <option value="bully">Bully</option>
+                <option value="cuddle">Cuddle</option>
+            </select>
         </div>
 
-        <div class="controls">
-            <button onclick="fetchImage()" id="gen-btn">Generate Asset</button>
-            <p class="api-hint">Source: <code>waifu.pics/api</code></p>
+        <div class="viewer">
+            <div id="skeleton" class="skeleton"></div>
+            <img id="main-img" src="" alt="API Result" style="display:none;">
+            
+            <div class="img-details" id="details" style="display:none;">
+                <span class="tag" id="tag-type">SFW</span>
+                <span class="tag" id="tag-cat">WAIFU</span>
+            </div>
         </div>
+
+        <div class="action-bar">
+            <button onclick="fetchSingle()" id="gen-btn" class="primary-btn">Generate</button>
+            <button onclick="downloadImg()" class="icon-btn">💾</button>
+        </div>
+
+        <div class="api-info">
+            <p>Request: <code id="endpoint-path">/api/sfw/waifu</code></p>
+            <button onclick="fetchMany()" class="secondary-link">Load Batch (30 Images)</button>
+        </div>
+
+        <div id="batch-grid" class="batch-grid"></div>
     </div>
 
     <script>
-        async function fetchImage() {
-            const img = document.getElementById('waifu-img');
-            const skeleton = document.getElementById('skeleton');
-            const btn = document.getElementById('gen-btn');
+        const mainImg = document.getElementById('main-img');
+        const skeleton = document.getElementById('skeleton');
+        const details = document.getElementById('details');
 
-            btn.disabled = true;
-            btn.innerText = "Fetching...";
-            img.style.display = "none";
+        function updateEndpoint() {
+            const t = document.getElementById('type-select').value;
+            const c = document.getElementById('category-select').value;
+            document.getElementById('endpoint-path').innerText = `/api/${t}/${c}`;
+        }
+
+        async function fetchSingle() {
+            const t = document.getElementById('type-select').value;
+            const c = document.getElementById('category-select').value;
+            
+            mainImg.style.display = "none";
+            details.style.display = "none";
             skeleton.style.display = "block";
 
             try {
-                // Direct call to the source since GitHub Pages has no backend
-                const res = await fetch('https://api.waifu.pics/sfw/waifu');
+                const res = await fetch(`https://api.waifu.pics/${t}/${c}`);
                 const data = await res.json();
                 
-                img.src = data.url;
-                img.onload = () => {
+                mainImg.src = data.url;
+                mainImg.onload = () => {
                     skeleton.style.display = "none";
-                    img.style.display = "block";
-                    btn.disabled = false;
-                    btn.innerText = "Generate Asset";
+                    mainImg.style.display = "block";
+                    details.style.display = "flex";
+                    document.getElementById('tag-type').innerText = t.toUpperCase();
+                    document.getElementById('tag-cat').innerText = c.toUpperCase();
                 };
-            } catch (e) {
-                console.error(e);
-                alert("Connection Error. Try again.");
-                btn.disabled = false;
-                btn.innerText = "Generate Asset";
-            }
+            } catch (e) { alert("API Offline"); }
         }
-        window.onload = fetchImage;
+
+        async function fetchMany() {
+            const t = document.getElementById('type-select').value;
+            const c = document.getElementById('category-select').value;
+            const grid = document.getElementById('batch-grid');
+            grid.innerHTML = "<p>Fetching 30 assets...</p>";
+
+            try {
+                // Using the POST method for 'many' as per API standards
+                const res = await fetch(`https://api.waifu.pics/many/${t}/${c}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                
+                grid.innerHTML = ""; // Clear loader
+                data.files.forEach(url => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    grid.appendChild(img);
+                });
+            } catch (e) { alert("Batch Error"); }
+        }
+
+        function downloadImg() {
+            if(!mainImg.src) return;
+            const a = document.createElement('a');
+            a.href = mainImg.src;
+            a.download = "BlissCraft_Asset.png";
+            a.target = "_blank";
+            a.click();
+        }
+
+        window.onload = fetchSingle;
     </script>
 </body>
 </html>
