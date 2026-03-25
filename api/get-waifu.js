@@ -1,20 +1,19 @@
-// api/get-waifu.js
 export default async function handler(req, res) {
-    const { type = 'sfw', category = 'waifu' } = req.query;
+    // Get parameters from the URL (e.g., /api/get-waifu?type=sfw&cat=waifu)
+    const { type = 'sfw', cat = 'waifu' } = req.query;
 
     try {
-        const response = await fetch(`https://api.waifu.pics/${type}/${category}`);
+        // Your API acts as a middleman to waifu.pics
+        const response = await fetch(`https://api.waifu.pics/${type}/${cat}`);
         const data = await response.json();
 
-        // You can modify the data here before sending it to your frontend
-        const customResponse = {
-            ...data,
-            timestamp: new Date().toISOString(),
-            provider: "BlissCraft-Custom-API"
-        };
-
-        res.status(200).json(customResponse);
+        // You can now inject your own data here!
+        res.status(200).json({
+            url: data.url,
+            owner: "Shahid",
+            timestamp: new Date().toLocaleString()
+        });
     } catch (error) {
-        res.status(500).json({ error: "Failed to fetch data" });
+        res.status(500).json({ error: "API Error" });
     }
 }
